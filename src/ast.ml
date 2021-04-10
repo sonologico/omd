@@ -1,6 +1,3 @@
-type attributes =
-  (string * string) list
-
 type list_type =
   | Ordered of int * char
   | Bullet of char
@@ -15,99 +12,62 @@ let same_block_list_kind k1 k2 =
   | Bullet c1, Bullet c2 -> c1 = c2
   | _ -> false
 
-type link_def =
+type 'a def_elt =
   {
-    label: string;
-    destination: string;
-    title: string option;
-    attributes: attributes;
+    term: 'a;
+    defs: 'a list;
   }
 
-module type T = sig
-  type t
-end
+type ('a, 'attr) block =
+  | Paragraph of 'attr * 'a
+  | List of 'attr * list_type * list_spacing * ('a, 'attr) block list list
+  | Blockquote of 'attr * ('a, 'attr) block list
+  | Thematic_break of 'attr
+  | Heading of 'attr * int * 'a
+  | Code_block of 'attr * string * string
+  | Html_block of 'attr * string
+  | Definition_list of 'attr * 'a def_elt list
 
-module MakeBlock (I : T) = struct
-  type def_elt =
-    {
-      term: I.t;
-      defs: I.t list;
-    }
-
-  and block =
-    {
-      bl_desc: block_desc;
-      bl_attributes: attributes;
-    }
-
-  and block_desc =
-    | Paragraph of I.t
-    | List of list_type * list_spacing * block list list
-    | Blockquote of block list
-    | Thematic_break
-    | Heading of int * I.t
-    | Code_block of string * string
-    | Html_block of string
-    | Definition_list of def_elt list
-end
-
-type link =
+type 'a link =
   {
-    label: inline;
+    label: 'a;
     destination: string;
     title: string option;
   }
 
-and inline =
-  {
-    il_desc: inline_desc;
-    il_attributes: attributes;
-  }
+type 'attr inline =
+  | Concat of 'attr * 'attr inline list
+  | Text of 'attr * string
+  | Emph of 'attr * 'attr inline
+  | Strong of 'attr * 'attr inline
+  | Code of 'attr * string
+  | Hard_break of 'attr
+  | Soft_break of 'attr
+  | Link of 'attr * 'attr inline link
+  | Image of 'attr * 'attr inline link
+  | Html of 'attr * string
 
-and inline_desc =
-  | Concat of inline list
-  | Text of string
-  | Emph of inline
-  | Strong of inline
-  | Code of string
-  | Hard_break
-  | Soft_break
-  | Link of link
-  | Image of link
-  | Html of string
 
-module Raw = MakeBlock (String)
+type attributes =
+  (string * string) list
 
-module Inline = struct type t = inline end
+type raw = (string, attributes) block
+type t = (attributes inline, attributes) block
 
-include MakeBlock (Inline)
-
-module MakeMapper (Src : T) (Dst : T) = struct
-  module SrcBlock = MakeBlock(Src)
-  module DstBlock = MakeBlock(Dst)
-
-  let rec map (f : Src.t -> Dst.t) : SrcBlock.block -> DstBlock.block =
-    fun {bl_desc; bl_attributes} ->
-    let bl_desc =
-      match bl_desc with
-      | SrcBlock.Paragraph x -> DstBlock.Paragraph (f x)
-      | List (ty, sp, bl) ->
-          List (ty, sp, List.map (List.map (map f)) bl)
-      | Blockquote xs ->
-          Blockquote (List.map (map f) xs)
-      | Thematic_break ->
-          Thematic_break
-      | Heading (level, text) ->
-          Heading (level, f text)
-      | Definition_list l ->
-          let f {SrcBlock.term; defs} = {DstBlock.term = f term; defs = List.map f defs} in
-          Definition_list (List.map f l)
-      | Code_block (label, code) ->
-          Code_block (label, code)
-      | Html_block x ->
-          Html_block x
-    in
-    {bl_desc; bl_attributes}
-end
-
-module Mapper = MakeMapper (String) (Inline)
+let rec map (f : 'a -> 'b) : ('a, 'attr) block -> ('b, 'attr) block = function
+| Paragraph (attr, x) -> Paragraph (attr, f x)
+| List (attr, ty, sp, bl) ->
+    List (attr, ty, sp, List.map (List.map (map f)) bl)
+| Blockquote (attr, xs) ->
+    Blockquote (attr, List.map (map f) xs)
+| Thematic_break attr ->
+    Thematic_break attr
+| Heading (attr, level, text) ->
+    Heading (attr, level, f text)
+| Definition_list (attr, l) ->
+    let f {term; defs} = {term = f term; defs = List.map f defs} in
+    Definition_list (attr, List.map f l)
+| Code_block (attr, label, code) ->
+    Code_block (attr, label, code)
+| Html_block (attr, x) ->
+    Html_block (attr, x)
