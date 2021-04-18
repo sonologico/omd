@@ -12,16 +12,25 @@ let same_block_list_kind k1 k2 =
   | Bullet c1, Bullet c2 -> c1 = c2
   | _ -> false
 
+
+type 'attr link_def =
+  {
+    label: string;
+    destination: string;
+    title: string option;
+    attributes: 'attr;
+  }
+
 type 'a def_elt =
   {
     term: 'a;
     defs: 'a list;
   }
 
-type ('a, 'attr) block =
+type ('attr, 'a) block =
   | Paragraph of 'attr * 'a
-  | List of 'attr * list_type * list_spacing * ('a, 'attr) block list list
-  | Blockquote of 'attr * ('a, 'attr) block list
+  | List of 'attr * list_type * list_spacing * ('attr, 'a) block list list
+  | Blockquote of 'attr * ('attr, 'a) block list
   | Thematic_break of 'attr
   | Heading of 'attr * int * 'a
   | Code_block of 'attr * string * string
@@ -51,10 +60,10 @@ type 'attr inline =
 type attributes =
   (string * string) list
 
-type raw = (string, attributes) block
-type t = (attributes inline, attributes) block
+type 'attr raw = ('attr, string) block
+type 'attr t = ('attr, 'attr inline) block
 
-let rec map (f : 'a -> 'b) : ('a, 'attr) block -> ('b, 'attr) block = function
+let rec map (f : 'a -> 'b) : ('attr, 'a) block -> ('attr, 'b) block = function
 | Paragraph (attr, x) -> Paragraph (attr, f x)
 | List (attr, ty, sp, bl) ->
     List (attr, ty, sp, List.map (List.map (map f)) bl)

@@ -2,17 +2,17 @@ module Pre = Block.Pre
 
 include Ast
 
-type doc = block list
+type doc = attributes t list
 
 let parse_inline defs s =
   Parser.inline defs (Parser.P.of_string s)
 
 let parse_inlines (md, defs) =
   let defs =
-    let f (def : link_def) = {def with label = Parser.normalize def.label} in
+    let f (def : attributes link_def) = {def with label = Parser.normalize def.label} in
     List.map f defs
   in
-  List.map (Mapper.map (parse_inline defs)) md
+  List.map (map (parse_inline defs)) md
 
 let of_channel ic =
   parse_inlines (Pre.of_channel ic)
