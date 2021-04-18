@@ -1035,7 +1035,7 @@ module Pre = struct
     | Emph (_, _, Underscore, n) -> Text ([], String.make n '_')
     | R x -> x
 
-  let rec parse_emph : t list -> t list = function
+  let rec parse_emph = function
     | Emph (pre, _, q1, n1) as x :: xs when is_opener x ->
         let rec loop acc = function
           | Emph (_, post, q2, n2) as x :: xs when is_closer x && q1 = q2 ->

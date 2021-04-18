@@ -11,47 +11,47 @@ let rec link {label; destination; title; _} =
   List (Atom "link" :: inline label :: Atom destination :: title)
 
 and inline = function
-| Concat (_, xs) ->
-    List (Atom "concat" :: List.map inline xs)
-| Text (_, s) ->
-    Atom s
-| Emph (_, il) ->
-    List [Atom "emph"; inline il]
-| Strong (_, il) ->
-    List [Atom "strong"; inline il]
-| Code _ ->
-    Atom "code"
-| Hard_break _ ->
-    Atom "hard-break"
-| Soft_break _->
-    Atom "soft-break"
-| Link (_, def) ->
-    List [Atom "url"; link def]
-| Html (_, s) ->
-    List [Atom "html"; Atom s]
-| Image _ ->
-    Atom "img"
+  | Concat (_, xs) ->
+      List (Atom "concat" :: List.map inline xs)
+  | Text (_, s) ->
+      Atom s
+  | Emph (_, il) ->
+      List [Atom "emph"; inline il]
+  | Strong (_, il) ->
+      List [Atom "strong"; inline il]
+  | Code _ ->
+      Atom "code"
+  | Hard_break _ ->
+      Atom "hard-break"
+  | Soft_break _->
+      Atom "soft-break"
+  | Link (_, def) ->
+      List [Atom "url"; link def]
+  | Html (_, s) ->
+      List [Atom "html"; Atom s]
+  | Image _ ->
+      Atom "img"
 
 let rec block = function
-| Paragraph (_, x) ->
-    List [Atom "paragraph"; inline x]
-| List (_, _, _, bls) ->
-    List (Atom "list" :: List.map (fun xs -> List (Atom "list-item" :: List.map block xs)) bls)
-| Blockquote (_, xs) ->
-    List (Atom "blockquote" :: List.map block xs)
-| Thematic_break _ ->
-    Atom "thematic-break"
-| Heading (_, level, text) ->
-    List [Atom "heading"; Atom (string_of_int level); inline text]
-| Code_block (_, info, _) ->
-    List [Atom "code-block"; Atom info]
-| Html_block (_, s) ->
-    List [Atom "html"; Atom s]
-| Definition_list (_, l) ->
-    List [Atom "def-list";
-          List (List.map (fun elt ->
-              List [inline elt.term;
-                    List (List.map inline elt.defs)]) l)]
+  | Paragraph (_, x) ->
+      List [Atom "paragraph"; inline x]
+  | List (_, _, _, bls) ->
+      List (Atom "list" :: List.map (fun xs -> List (Atom "list-item" :: List.map block xs)) bls)
+  | Blockquote (_, xs) ->
+      List (Atom "blockquote" :: List.map block xs)
+  | Thematic_break _ ->
+      Atom "thematic-break"
+  | Heading (_, level, text) ->
+      List [Atom "heading"; Atom (string_of_int level); inline text]
+  | Code_block (_, info, _) ->
+      List [Atom "code-block"; Atom info]
+  | Html_block (_, s) ->
+      List [Atom "html"; Atom s]
+  | Definition_list (_, l) ->
+      List [Atom "def-list";
+            List (List.map (fun elt ->
+                List [inline elt.term;
+                      List (List.map inline elt.defs)]) l)]
 
 let create ast =
   List (List.map block ast)
