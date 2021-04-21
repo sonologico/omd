@@ -46,7 +46,9 @@ type ('attr, 'a) block =
   | Html_block of 'attr * string
   | Definition_list of 'attr * 'a def_elt list
 
-type doc = (attributes, attributes inline) block list
+type 'attr t = ('attr, 'attr inline) block
+
+type doc = attributes t list
 (** A markdown document *)
 
 val of_channel: in_channel -> doc
