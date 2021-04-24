@@ -27,10 +27,10 @@ type 'a def_elt =
     defs: 'a list;
   }
 
-type ('attr, 'a) block =
+type ('attr, 'a) base_block =
   | Paragraph of 'attr * 'a
-  | List of 'attr * list_type * list_spacing * ('attr, 'a) block list list
-  | Blockquote of 'attr * ('attr, 'a) block list
+  | List of 'attr * list_type * list_spacing * ('attr, 'a) base_block list list
+  | Blockquote of 'attr * ('attr, 'a) base_block list
   | Thematic_break of 'attr
   | Heading of 'attr * int * 'a
   | Code_block of 'attr * string * string
@@ -60,10 +60,10 @@ type 'attr inline =
 type attributes =
   (string * string) list
 
-type 'attr raw = ('attr, string) block
-type 'attr t = ('attr, 'attr inline) block
+type 'attr raw = ('attr, string) base_block
+type 'attr block = ('attr, 'attr inline) base_block
 
-let rec map (f : 'a -> 'b) : ('attr, 'a) block -> ('attr, 'b) block = function
+let rec map (f : 'a -> 'b) : ('attr, 'a) base_block -> ('attr, 'b) base_block = function
 | Paragraph (attr, x) -> Paragraph (attr, f x)
 | List (attr, ty, sp, bl) ->
     List (attr, ty, sp, List.map (List.map (map f)) bl)

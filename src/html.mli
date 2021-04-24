@@ -9,7 +9,7 @@ type t =
   | Null
   | Concat of t * t
 
-val of_doc : Ast.attributes Ast.t list -> t
+val of_doc : Ast.attributes Ast.block list -> t
 
 val to_string : t -> string
 

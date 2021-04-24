@@ -2,7 +2,7 @@ module Pre = Block.Pre
 
 include Ast
 
-type doc = attributes t list
+type doc = attributes Ast.block list
 
 let parse_inline defs s =
   Parser.inline defs (Parser.P.of_string s)

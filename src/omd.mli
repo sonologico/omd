@@ -36,19 +36,19 @@ type 'a def_elt =
     defs: 'a list;
   }
 
-type ('attr, 'a) block =
+type ('attr, 'a) base_block =
   | Paragraph of 'attr * 'a
-  | List of 'attr * list_type * list_spacing * ('attr, 'a) block list list
-  | Blockquote of 'attr * ('attr, 'a) block list
+  | List of 'attr * list_type * list_spacing * ('attr, 'a) base_block list list
+  | Blockquote of 'attr * ('attr, 'a) base_block list
   | Thematic_break of 'attr
   | Heading of 'attr * int * 'a
   | Code_block of 'attr * string * string
   | Html_block of 'attr * string
   | Definition_list of 'attr * 'a def_elt list
 
-type 'attr t = ('attr, 'attr inline) block
+type 'attr block = ('attr, 'attr inline) base_block
 
-type doc = attributes t list
+type doc = attributes block list
 (** A markdown document *)
 
 val of_channel: in_channel -> doc
